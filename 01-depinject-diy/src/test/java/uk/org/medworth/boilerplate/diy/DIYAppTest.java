@@ -3,6 +3,8 @@ package uk.org.medworth.boilerplate.diy;
 import org.junit.Test;
 import uk.org.medworth.boilerplate.A;
 import uk.org.medworth.boilerplate.C;
+import uk.org.medworth.boilerplate.diy.config.Config;
+import uk.org.medworth.boilerplate.diy.config.ConfigProperties;
 
 import static org.junit.Assert.assertEquals;
 
@@ -13,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 public class DIYAppTest {
     @Test
     public void testDependencyOverride() {
-        Config config = new Config();
+        Config config = new Config(ConfigProperties.fromClasspathFile("test.properties"));
         C myC = new MockC();
         config.setC(myC);
         A a = config.getA();

@@ -18,6 +18,6 @@ import javax.inject.Singleton;
 @Module(includes = Config.class)
 public class InternalConfig {
     @Provides @Singleton static C provideC() {
-        return new CImpl("wibble");
+        return new CImpl("I sell sea shells");
     }
 }
