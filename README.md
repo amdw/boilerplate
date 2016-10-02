@@ -83,10 +83,10 @@ Using simpler, more direct abstractions tends to produce better error messages.
 To demonstrate this, I have included an ```errors``` package in both
 ```01-depinject-spring``` and ```01-depinject-diy```.
 
-In ```MissingBeanDemo```, I show what happens when you forget to declare a required
-bean in Spring: you get a long and complex exception message. The longer the
-chain from the desired bean to the missing one, the longer the message, but even
-in this very simple case, it is meaty!
+In ```MissingBeanDemo```, I show what happens when you forget to declare a
+required bean in Spring: you get a long and complex exception message. The
+longer the chain from the desired bean to the missing one, the longer the
+message, but even in this very simple case, it is meaty!
 
 Users of Spring can expect to spend large amounts of time reading and debugging
 error messages similar to this one; notice how the stack traces contain no
@@ -96,11 +96,11 @@ debug the Spring Framework code itself (not an enjoyable exercise) or trawl the
 Web in the hope that someone else has had a similar problem and posted the
 solution to it.
 
-There is no equivalent of ```ErrorDemo``` in the ```diy``` module, because the
-plain vanilla Java compiler would make it impossible to make such a mistake (as
-you would have to call a method which does not exist). So here we see another
-advantage of using a little boilerplate: the compiler can help us check that it
-does what we want it to do!
+There is no equivalent of ```MissingBeanDemo``` in the ```diy``` module, because
+the plain vanilla Java compiler would make it impossible to make such a mistake
+(as you would have to call a method which does not exist). So here we see
+another advantage of using a little boilerplate: the compiler can help us check
+that it does what we want it to do!
 
 In ```SpringMissingPropertyDemo``` and ```DIYMissingPropertyDemo```, I show what
 happens in the two approaches when you refer to a property which does not exist
