@@ -48,7 +48,7 @@ or Dagger to Spring, as they are more focussed. Guice uses runtime reflection,
 which makes it harder to reason about the application's behaviour at compile
 time; Dagger uses compile-time code generation, which addresses this problem at
 the expense of complicating the build (for example, not every JVM language will
-necessarily have the necessary annotation-processing plugins).
+necessarily have the required annotation-processing plugins).
 
 ## Configuration
 
