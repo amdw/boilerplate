@@ -106,14 +106,57 @@ In ```SpringMissingPropertyDemo``` and ```DIYMissingPropertyDemo```, I show what
 happens in the two approaches when you refer to a property which does not exist
 in the configuration file. In the DIY version, you get a simple straightforward
 exception message telling you which property name was missing from which
-configuration file. In the Spring version, you get a message many times longer,
-full of class names such as ```AutowiredAnnotationBeanPostProcessor``` and
+configuration file:
+
+```
+Exception in thread "main" uk.org.medworth.boilerplate.diy.config.ConfigProperties$MissingPropertyException: Key [Does.Not.Exist] missing from properties loaded from classpath file [app.properties]
+	at uk.org.medworth.boilerplate.diy.config.ConfigProperties.getRequiredString(ConfigProperties.java:46)
+	at uk.org.medworth.boilerplate.diy.errors.DIYMissingPropertyDemo.main(DIYMissingPropertyDemo.java:12)
+```
+
+In the Spring version, you get a message many times longer, full of class names
+such as ```AutowiredAnnotationBeanPostProcessor``` and
 ```DefaultSingletonBeanRegistry```, but missing the most important piece of
 information, namely the name of the file in which the program looked for the
 missing property!
 
-Ask yourself which of these two you would prefer to maintain and debug! I know
-my answer.
+```
+Exception in thread "main" org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'springMissingPropertyDemo.WrongConfig': Injection of autowired dependencies failed; nested exception is java.lang.IllegalArgumentException: Could not resolve placeholder 'Property.Doesnt.Exist' in string value "${Property.Doesnt.Exist}"
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessPropertyValues(AutowiredAnnotationBeanPostProcessor.java:355)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1219)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:543)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:482)
+	at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:306)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:230)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:302)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:197)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:751)
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:861)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:541)
+	at org.springframework.context.annotation.AnnotationConfigApplicationContext.<init>(AnnotationConfigApplicationContext.java:84)
+	at uk.org.medworth.boilerplate.spring.errors.SpringMissingPropertyDemo.main(SpringMissingPropertyDemo.java:22)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:497)
+	at com.intellij.rt.execution.application.AppMain.main(AppMain.java:147)
+Caused by: java.lang.IllegalArgumentException: Could not resolve placeholder 'Property.Doesnt.Exist' in string value "${Property.Doesnt.Exist}"
+	at org.springframework.util.PropertyPlaceholderHelper.parseStringValue(PropertyPlaceholderHelper.java:174)
+	at org.springframework.util.PropertyPlaceholderHelper.replacePlaceholders(PropertyPlaceholderHelper.java:126)
+	at org.springframework.core.env.AbstractPropertyResolver.doResolvePlaceholders(AbstractPropertyResolver.java:219)
+	at org.springframework.core.env.AbstractPropertyResolver.resolveRequiredPlaceholders(AbstractPropertyResolver.java:193)
+	at org.springframework.context.support.PropertySourcesPlaceholderConfigurer$2.resolveStringValue(PropertySourcesPlaceholderConfigurer.java:172)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.resolveEmbeddedValue(AbstractBeanFactory.java:813)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1076)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1056)
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.inject(AutowiredAnnotationBeanPostProcessor.java:566)
+	at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:88)
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessPropertyValues(AutowiredAnnotationBeanPostProcessor.java:349)
+	... 17 more
+```
+
+Ask yourself which of these two error messages you would prefer to see in a
+real application! I know my answer.
 
 # Transactions
 
@@ -137,17 +180,47 @@ management](http://docs.spring.io/spring-framework/docs/4.3.3.RELEASE/spring-fra
 Both implementations do nothing more than throw an exception. Running
 ```TransactionalApp``` runs both: in both cases you will see "rollback" being
 invoked on the transaction manager, followed by a stack trace. With the
-"boilerplate DAO", you will see just *one* Spring stack frame in the trace,
-whereas with the "annotated DAO", there are *eight*, due to the AOP proxy,
-transaction interceptor etc. This shows just how much complexity and additional
-hidden dependencies are introduced by the use of AOP.
+"boilerplate DAO", you will see just *one* Spring stack frame in the trace:
+
+```
+java.lang.RuntimeException: So you can see the stack trace
+	at uk.org.medworth.boilerplate.tx.BoilerPlateDAO.lambda$getValue$2(BoilerPlateDAO.java:21)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:133)
+	at uk.org.medworth.boilerplate.tx.BoilerPlateDAO.getValue(BoilerPlateDAO.java:20)
+	at uk.org.medworth.boilerplate.tx.TransactionalApp.main(TransactionalApp.java:24)
+```
+
+Whereas with the "annotated DAO", there are *eight*, due to the AOP proxy,
+transaction interceptor etc:
+
+```
+java.lang.RuntimeException: So you can see the stack trace
+	at uk.org.medworth.boilerplate.tx.AnnotatedDAO.getValue(AnnotatedDAO.java:12)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:497)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:333)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:190)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:157)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:99)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:281)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:96)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179)
+	at org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:213)
+	at com.sun.proxy.$Proxy19.getValue(Unknown Source)
+	at uk.org.medworth.boilerplate.tx.TransactionalApp.main(TransactionalApp.java:14)
+```
+
+This shows just how much complexity and additional hidden dependencies are
+introduced by the use of AOP.
 
 If I were forced to use Spring transaction management, I would strongly prefer
 the ```BoilerPlateDAO``` style. In addition to the above advantages, this style
 avoids the notorious differences between self-invocation and external invocation
 caused by the use of AOP proxies (search for "self-invocation" in the Spring
-docs). In my view, these advantages are well worth the small amount of
-boilerplate code.
+transaction docs linked above). In my view, these advantages are well worth the
+small amount of boilerplate code.
  
 # Build
 
@@ -174,7 +247,7 @@ available as noted below or in LICENSE.txt.
    Copyright 2016 Andrew Medworth
 
    Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
+   you may not use these files except in compliance with the License.
    You may obtain a copy of the License at
 
        http://www.apache.org/licenses/LICENSE-2.0
