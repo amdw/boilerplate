@@ -43,6 +43,19 @@ XML configuration, Aspect Oriented Programming, and other techniques which
 complicate the application and make it harder to reason about, debug, test,
 maintain etc.
 
+Defenders of dependency injection frameworks will doubtless produce a long list
+of features of their pet framework which are missing from the simple approach in
+```01-depinject-diy```. But this is actually the point: all my application needs
+is some simple object wiring and simple configuration. Why pull in a complex
+framework when your needs are simple? I would further argue that this approach
+can be smoothly extended to meet the needs of the vast majority of real-world
+applications.
+
+The overall philosophy is: rather than start with a large framework which even
+complex applications will only ever use a small fraction of, it is better to
+start with a set of abstractions which are as simple as possible, provided you
+see no barriers to extending them as your application grows.
+
 If I were forced to use a dependency-injection framework, I would prefer Guice
 or Dagger to Spring, as they are more focussed. Guice uses runtime reflection,
 which makes it harder to reason about the application's behaviour at compile
@@ -221,6 +234,127 @@ avoids the notorious differences between self-invocation and external invocation
 caused by the use of AOP proxies (search for "self-invocation" in the Spring
 transaction docs linked above). In my view, these advantages are well worth the
 small amount of boilerplate code.
+
+# Web frameworks
+
+In ```03-web-spring``` and ```03-web-vertx```, you will find two implementations
+of an identical web application, inspired by [this
+tutorial](https://spring.io/guides/gs/serving-web-content/).
+
+It is a trivial application with two endpoints: a static ```index.html``` and a
+```/speech``` endpoint which renders a simple HTML template written in
+[ThymeLeaf](http://www.thymeleaf.org/) according to the value of the
+```occasion``` parameter passed in the URL.
+
+In each module, you will find an integration test which starts a server and
+makes a few test calls against it.
+
+```03-web-spring``` uses [Spring Boot](http://projects.spring.io/spring-boot/),
+a framework which proudly "[t]akes an opinionated view of building
+production-ready Spring applications... to get you up and running as quickly as
+possible".
+
+```03-web-vertx``` uses [Vert.x](http://vertx.io/) (in particular
+[vertx-web](http://vertx.io/docs/vertx-web/java/)), which has a very different
+design philosophy: on its home page, under a large heading "Unopinionated", it
+says "Vert.x is not a restrictive framework or container and we don't tell you a
+correct way to write an application. Instead we give you a lot of useful bricks
+and let you create your app the way you want to."
+
+Comparing the two implementations, it is clear that the Spring Boot version
+requires impressively little code: just one tiny controller class and a one-line
+```main``` method. We don't have to explicitly tell it to serve static content
+from the ```resources/static``` folder, which template engine to use, where to
+find the templates, or even where the controller and main class are to be found:
+all this is done automatically through standard conventions and classpath
+scanning.
+
+The test is also very concise: just a couple of annotations and an
+```@Autowired``` REST template, and we can easily write three methods testing
+the key cases.
+
+By contrast, the Vert.x implementation requires us to explicitly create an HTTP
+server and router, register the various handlers, and render the template. And
+in the test, we need to explicitly find a free port, start the server, and write
+asynchronous code to make the assertions.
+
+However, the Spring Boot approach has considerable hidden costs. The first
+becomes evident as soon as you create the module: Spring Boot expects you to
+inherit from a special parent POM, ```spring-boot-starter-parent```. This means
+we cannot inherit any of the default behaviours we defined in our own root
+```pom.xml```. Since we want to use certain plugins to enforce hygiene (see
+below), we have to repeat those sections.
+
+Secondly, Spring Boot pulls a lot more dependencies onto the classpath:
+analysing the compile-time and runtime dependency trees for the two POMs
+(i.e. ignoring test dependencies) gives the following results:
+
+* ```03-web-spring```: 39 JARs, total size: 20.2 Mb, total classes: 13,016
+* ```03-web-vertx```: 26 JARs, total size: 8.1 Mb, total classes: 4,898
+
+So Spring Boot is causing us to pull 1.5 times as many JARs, almost 2.5 times as
+many bytecode megabytes, and over 2.5 times as many classes onto our classpath,
+compared to the identical application written in Vert.x.
+
+Combining the increased dependencies with the repetition from the root POM in
+```03-web-spring```, if you run ```wc -l``` on the repo files for the two
+modules, the total line count is actually about the same. (Admittedly, I didn't
+have to explicitly list each direct dependency in the ```03-web-spring```
+```pom.xml``` - I could have just let them come in from the parent POM as in
+[the demo](https://github.com/spring-guides/gs-serving-web-content/blob/master/complete/pom.xml) - but
+I think this is a good practice and I have done it consistently across all
+the modules.)
+
+Thirdly, look at a representative summary of Maven build times (starting from
+clean on my system):
+
+```
+[INFO] 03-web-spring ...................................... SUCCESS [  4.848 s]
+[INFO] 03-web-vertx ....................................... SUCCESS [  1.638 s]
+```
+
+So the Spring Boot approach is almost three times slower to compile and test: by
+far the slowest module in the project. 4.8 seconds might not seem like much, but
+this is a trivial web app, and the duration is only going to go up as more
+realistic functionality and tests get added. Having a fast build is a major
+benefit in achieving agility and avoiding [wasted time](http://xkcd.com/303/).
+
+(I initially thought this performance difference might be at least partly due to
+the fact that the ```spring-boot-maven-plugin``` produces a "fat JAR", bundling
+the app with all its dependencies in a single JAR, but then I commented out the
+invocation of the plugin from the ```03-web-spring``` POM and found it made
+almost no difference.)
+
+If you look in the build logs, you will see that the Spring Boot test logs a
+considerable volume at DEBUG level by default. I'm sure there is a way to turn
+this off, but the fact that I tried various web searches and configuration
+options for several minutes without success is a small taste of the kind of
+problems the "opinionated" everything-implicit approach can cause.
+
+Fourthly, in a similar way to what we saw earlier with "regular" Spring, the
+"magic" behaviours of Spring Boot (the classpath scanning, the property source
+hierarchy, the annotation language, the auto-discovery of static files and
+templates) cause considerable fragility: for example, a small change in the
+classpath or a small refactoring could break the app completely in a non-obvious
+way. These features also, again, introduce dynamic behaviour which is not
+predictable from reading the code or using static analysis tools.
+
+The same features which got us up and running so quickly could easily cost us
+hours of debugging and trawling through debug logs as soon as we do something
+which slightly conflicts with Spring Boot's expectations.
+
+The vast majority of software engineering effort is spent on maintenance, not
+initial construction: it is the former we should be optimising for, not the
+latter. I would rather have "wiring" like property reading and web request
+routing explicitly in the application code, so it is transparent, readable,
+searchable etc in the future - even if that means a little bit more typing 
+at the beginning to achieve a working application.
+
+In these two modules, we again see an example of two fundamentally different
+design approaches at work. A Spring Boot application starts heavy and opaque,
+and tends to get more so as time goes on. A Vert.x application can start simple
+and transparent, and gradually add just as much complexity as needed, as it is
+needed. I greatly prefer the latter approach.
  
 # Build
 
@@ -237,6 +371,12 @@ and [duplicate class
 bans](http://www.mojohaus.org/extra-enforcer-rules/banDuplicateClasses.html)
 which are techniques I would highly recommend to anyone maintaining Java
 projects.
+
+Finally, I have included a script ```dependency.py```, which can be run after
+a successful Maven build, and analyses the dependency trees output by the
+```maven-dependency-plugin```. Ideally you would be able to get this kind of
+information from the plugin itself, but until then, this is a useful
+substitute.
 
 # License
 

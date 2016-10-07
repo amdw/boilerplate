@@ -15,6 +15,8 @@
         <module>01-depinject-diy</module>
         <module>01-depinject-dagger</module>
         <module>02-transactions</module>
+        <module>03-web-spring</module>
+        <module>03-web-vertx</module>
     </modules>
 
     <properties>
