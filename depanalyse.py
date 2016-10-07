@@ -59,17 +59,17 @@ def parse_line(line):
     line = line.rstrip().lstrip(' -+|\\')
     parts = line.split(':')
     scope = None
-    cls = None
+    classifier = None
     if len(parts) == 4:
         [gid, aid, pkg, version] = parts
     elif len(parts) == 5:
         [gid, aid, pkg, version, scope] = parts
     elif len(parts) == 6:
-        [gid, aid, pkg, cls, version, scope] = parts
+        [gid, aid, pkg, classifier, version, scope] = parts
     if pkg == "pom":
         return None
     return {"group_id": gid, "artifact_id": aid, "packaging": pkg,
-            "classifier": cls, "version": version, "scope": scope}
+            "classifier": classifier, "version": version, "scope": scope}
 
 def find_jar(dep_def, maven_home):
     """
