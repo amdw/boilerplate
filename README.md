@@ -18,8 +18,8 @@ by several other modules. I have made no attempt to give them realistic names
 and purposes: I simply called the interfaces ```A```, ```B```, and ```C``` and
 the implementations ```AImpl```, ```BImpl```, and ```CImpl```.
 
-```AImpl``` depends on ```BImpl``` and ```CImpl```; ```BImpl``` depends on
-```CImpl```; so we have a simple dependency graph of three classes.
+```AImpl``` depends on ```B``` and ```C```; ```BImpl``` depends on ```C```; so
+we have a simple acyclic dependency graph.
 
 # Dependency injection
 
