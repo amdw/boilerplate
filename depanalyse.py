@@ -66,6 +66,8 @@ def parse_line(line):
         [gid, aid, pkg, version, scope] = parts
     elif len(parts) == 6:
         [gid, aid, pkg, classifier, version, scope] = parts
+    else:
+        return None
     if pkg == "pom":
         return None
     return {"group_id": gid, "artifact_id": aid, "packaging": pkg,
