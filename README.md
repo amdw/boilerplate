@@ -1,12 +1,14 @@
 # Introduction
 
 This repository contains illustrative material for a talk I gave on 15th October
-2016 at Hong Kong Code Conf, entitled *In Defence of Boilerplate Code*.
+2016 at Hong Kong Code Conf, entitled *In Defence of Boilerplate Code*. The
+accompanying slides may be found
+[here](https://docs.google.com/presentation/d/1oBjMaXxMtF1NtvLJsAPSaFuZMt6gEOy0kuupzbPDxcI/edit?usp=sharing).
 
 The main argument of the talk is that while boilerplate code is certainly
 undesirable all else being equal, sometimes the cure is worse than the disease:
-techniques used to eliminate boilerplate code can cause worse problems than the
-boilerplate itself.
+abstraction techniques used to eliminate boilerplate code can sometimes have
+hidden costs which cause worse problems than the boilerplate itself.
 
 The repository consists of several Java modules, each of which illustrates this
 theme in a different way.
