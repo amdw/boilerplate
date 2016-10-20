@@ -369,9 +369,11 @@ Anyone who has maintained a sizeable Java application for any length of time
 knows how important a consideration this is.
 
 As a bonus, in the root POM I have turned on [dependency cleanliness
-enforcement](http://maven.apache.org/plugins/maven-dependency-plugin/examples/failing-the-build-on-dependency-analysis-warnings.html)
-and [duplicate class
+enforcement](http://maven.apache.org/plugins/maven-dependency-plugin/examples/failing-the-build-on-dependency-analysis-warnings.html),
+[duplicate class
 bans](http://www.mojohaus.org/extra-enforcer-rules/banDuplicateClasses.html)
+and [dependency
+convergence](https://maven.apache.org/enforcer/enforcer-rules/dependencyConvergence.html)
 which are techniques I would highly recommend to anyone maintaining Java
 projects.
 

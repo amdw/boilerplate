@@ -74,6 +74,7 @@
                                 <banDuplicateClasses>
                                     <findAllDuplicates>true</findAllDuplicates>
                                 </banDuplicateClasses>
+                                <dependencyConvergence/>
                             </rules>
                             <fail>true</fail>
                         </configuration>
