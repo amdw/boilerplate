@@ -171,6 +171,11 @@ Caused by: java.lang.IllegalArgumentException: Could not resolve placeholder 'Pr
 	... 17 more
 ```
 
+(The reason the property filename does not appear is presumably that Spring
+allows a hierarchy of property sources, so it does not know that the missing
+property was supposed to come from the file, as opposed to, for example, the
+command line.)
+
 Ask yourself which of these two error messages you would prefer to see in a
 real application! I know my answer.
 
