@@ -29,7 +29,7 @@ The ```01-depinject``` series of modules illustrates several different
 techniques for wiring the application objects together, and overriding those
 wirings for testing.
 
-The idea is we want to use a single instance of each class: for example
+The idea is we want to use a single instance of each interface: for example
 ```AImpl``` and ```BImpl``` should share the same instance of ```CImpl```.
 
 There are four modules in total: three use the common dependency injection
