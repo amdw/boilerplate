@@ -102,7 +102,33 @@ To demonstrate this, I have included an ```errors``` package in both
 In ```MissingBeanDemo```, I show what happens when you forget to declare a
 required bean in Spring: you get a long and complex exception message. The
 longer the chain from the desired bean to the missing one, the longer the
-message, but even in this very simple case, it is meaty!
+message, but even in this very simple case, it is meaty (23 lines)!
+
+```
+Exception in thread "main" org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'a' defined in uk.org.medworth.boilerplate.spring.config.Config: Unsatisfied dependency expressed through method 'a' parameter 0; nested exception is org.springframework.beans.factory.NoSuchBeanDefinitionException: No qualifying bean found for dependency [uk.org.medworth.boilerplate.C]: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:749)
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod(ConstructorResolver.java:467)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod(AbstractAutowireCapableBeanFactory.java:1128)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1023)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:510)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:482)
+	at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:306)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:230)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:302)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:197)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:751)
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:861)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:541)
+	at org.springframework.context.annotation.AnnotationConfigApplicationContext.<init>(AnnotationConfigApplicationContext.java:84)
+	at uk.org.medworth.boilerplate.spring.errors.MissingBeanDemo.main(MissingBeanDemo.java:14)
+Caused by: org.springframework.beans.factory.NoSuchBeanDefinitionException: No qualifying bean found for dependency [uk.org.medworth.boilerplate.C]: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.raiseNoMatchingBeanFound(DefaultListableBeanFactory.java:1463)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1094)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1056)
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:835)
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:741)
+	... 19 more
+```
 
 Users of Spring can expect to spend large amounts of time reading and debugging
 error messages similar to this one; notice how the stack traces contain no
@@ -151,11 +177,6 @@ Exception in thread "main" org.springframework.beans.factory.BeanCreationExcepti
 	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:541)
 	at org.springframework.context.annotation.AnnotationConfigApplicationContext.<init>(AnnotationConfigApplicationContext.java:84)
 	at uk.org.medworth.boilerplate.spring.errors.SpringMissingPropertyDemo.main(SpringMissingPropertyDemo.java:22)
-	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:497)
-	at com.intellij.rt.execution.application.AppMain.main(AppMain.java:147)
 Caused by: java.lang.IllegalArgumentException: Could not resolve placeholder 'Property.Doesnt.Exist' in string value "${Property.Doesnt.Exist}"
 	at org.springframework.util.PropertyPlaceholderHelper.parseStringValue(PropertyPlaceholderHelper.java:174)
 	at org.springframework.util.PropertyPlaceholderHelper.replacePlaceholders(PropertyPlaceholderHelper.java:126)
@@ -171,13 +192,18 @@ Caused by: java.lang.IllegalArgumentException: Could not resolve placeholder 'Pr
 	... 17 more
 ```
 
-(The reason the property filename does not appear is presumably that Spring
-allows a hierarchy of property sources, so it does not know that the missing
-property was supposed to come from the file, as opposed to, for example, the
-command line.)
-
 Ask yourself which of these two error messages you would prefer to see in a
 real application! I know my answer.
+
+The reason the property filename does not appear in the Spring error message is
+presumably that Spring allows a hierarchy of property sources, so it does not
+know that the missing property was supposed to come from the file, as opposed
+to, for example, the command line.
+
+It would be theoretically possible for Spring to log a summary of the property
+source hierarchy in this case, which would aid debugging. However my overall
+point remains that Spring's design sacrifices simplicity and ease of debugging
+for a flexibility which brings no real benefits for a great many applications.
 
 # Transactions
 
